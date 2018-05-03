@@ -4,6 +4,11 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var session=require("express-session")({
+	secret: 'keyboard cat',
+  	cookie: {maxAge:60*10*60 }
+})
+var iosession=require("express-socket.io-session")(session)
 
 var index = require('./routes/index');
 var users = require('./routes/users');
@@ -12,15 +17,18 @@ var app = express();
 var server=require('http').Server(app)
 server.listen(8080)
 var io=require('socket.io')(server)
-
+io.use(iosession);
 io.on("connection",socket=>{
 	socket.on("req",(data,cb)=>{
 		console.log(data);
 		cb("我是返回的数据");
 	})
 	socket.on("say",data=>{
+		const num=++socket.handshake.session.num;
+		socket.handshake.session.save();
 		/*socket.emit("answer",data+"("+new Date()+")");//每次打开都是一个新的会话*/
-		io.emit("answer",data+"("+new Date()+")")//整个是一个会话   
+		/*io.emit("answer",data+"("+new Date()+")")*///整个是一个会话   
+		io.emit("answer","num="+num);
 	})
 })
 // view engine setup
@@ -33,9 +41,10 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(session)
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', index);
+app.use('/', index);	
 app.use('/users', users);
 
 // catch 404 and forward to error handler
