@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+  <body>
+  	<h1>内容:</h1>
+  	<div class="list"></div>
+    <h1>聊天室</h1>
+    <input type="text" onchange="say(event)" />
+  </body>
+  <script type="text/javascript">
+  	const socket=io.connect();
+  	const list=document.querySelector(".list")
+  	function say(event){
+  		socket.emit("say",event.target.value);
+  	}
+  	socket.on('answer',data=>{
+  		let pdom=document.createElement("p");
+  		pdom.innerText=data;
+  		list.appendChild(pdom);
+  	})
+  	socket.emit("req","我是一个callba请求",res=>{
+  		console.log("res:",res);
+  	})
+  </script>
+</html>
